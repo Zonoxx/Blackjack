@@ -1,0 +1,37 @@
+Project Scope
+
+The game simulates a single player game of blackjack. Its player vs. dealer. 
+- For realism the game will simulate a stack of 6 full decks of 52 cards each and replenish the stack when its half empty ->  simple alternative is to create cards randomly.
+- The player has a bank of money that he determines at the start and the game keeps track of
+- The player can bet money and will receive double his bet when he wins and loose his bet if he looses
+- Win condition: player can choose to stop playing at any point, bank will be judged on % of original amount and player will be assessed accordingly
+- Losing condition: player bank hits 0
+
+Flow of the game:
+
+Game start
+- player is shown the rules of the game and asked to enter the amount he would like to play with
+
+Gameplay loop
+- player is asked how much would like to wager, maximum bet is 10% of initial amount, minimum bet is 1%
+- player will receive card, dealer will receive card, player will receive second card, dealer will receive second card
+- game checks for blackjack (if dealer has blackjack player is given the option to surrender, i.e. loosing half his money and round ends)
+- player is given information about his cards and the first card of the dealer
+- player gets to choose from following actions:
+    hit - get another card
+    stand - player keeps current cards and dealer evaluates
+    double down - player gets one more card and is forced to stand
+    (will not be included in first version) split - if inital cards have the same value
+- player receives options for more cards until he either stands, hits 21 or busts
+- when player stands dealer reveals second card and draws until he has 17 or higher
+- result of the game is evaluated
+- if player value > dealer value players bet is doubled
+- if player value = dealer value player bet is given black
+- if player value < dealer value player looses bet
+- result is given to player
+- player is asked if he wants to play again, end the game or see the rules again (and then is asked the same thing again)
+
+End of the game
+- When Player bank hits 0 player is taunted and asked to leave
+- When player decides to leave before hitting 0 the player bank is evaluated and player is either taunted or encouraged
+
