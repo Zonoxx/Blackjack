@@ -52,15 +52,6 @@ The game ends when you have not enough money to bet again
 or you decide to end the round. Either way, the game will let you know how you did in the end.
 """
 
-def pull_a_card(deck_of_cards):
-    index = random.randint(0, len(deck_of_cards)-1)
-    keys_list = list(deck_of_cards)
-    card_key = keys_list[index]
-    return card_key
-
-def get_card_value (card_key, deck_of_cards):
-    card_value = deck_of_cards[card_key]
-    return card_value
 
 class Bank():
     def __init__(self):
@@ -70,12 +61,16 @@ class Bank():
         self.balance = 0
     # Gets player input for the starting amount and makes sure the input is valid
     def set_starting_amount(self):
-        self.starting_amount = input("Great, lets begin. Minimum buyin is 100$, the maximum is 10.000$. How much money would you like to start with? ")
-        self.starting_amount = int(self.starting_amount)
-        if type(self.starting_amount) is not int:
-            self.starting_amount = input("Please enter a number between 100 and 10000 without decimals or extra signs: ")
-        while self.starting_amount < 100 or self.starting_amount > 10000:
-            self.starting_amount = input("Minimum buyin is 100$, the maximum is 10.000$. How much money would you like to start with? ")
+        while True:
+            try:
+                self.starting_amount = int(input("Minimum buyin is 100$, the maximum is 10.000$. How much money would you like to start with? "))
+                while self.starting_amount < 100 or self.starting_amount > 10000:
+                    self.starting_amount = input("Minimum buyin is 100$, the maximum is 10.000$. How much money would you like to start with? ")
+                    self.starting_amount = int(self.starting_amount)
+                break
+            except ValueError:
+                print("Your input was not a number. Press Enter and try again please.")
+        
         return self.starting_amount
 
     def set_initial_balance(self, starting_amount):
@@ -91,12 +86,14 @@ class Bank():
         self.maximum_bet = self.starting_amount // 10
         return self.minimum_bet, self.maximum_bet
 
+    #Display player balance and bet size
     def show_player_balance(self, balance, minimum_bet, maximum_bet):
         return "Your current balance is " + str(self.balance) + "$. The minimum bet is " + str(self.minimum_bet) + "$, the maximum is " + str(self.maximum_bet) + "$."
 
-class Mechanics():
+class Deck():
     ### This class handles game mechanics ###
-
+    def __init__(self, deck_of_cards):
+        self.deck_of_cards = deck_of_cards
     # Selects a card at random and returns the card name
     def pull_a_card(deck_of_cards):
         index = random.randint(0, len(deck_of_cards)-1)
@@ -128,11 +125,11 @@ class Mechanics():
             # evaluate Dealer       
 ###
 new = Bank()
-new.set_starting_amount()
-new.set_initial_balance(new.starting_amount)
-new.set_bet_size(new.starting_amount)
-print(new.show_player_balance(new.balance, new.minimum_bet, new.maximum_bet,))
-#Bank.show_player_balance()
+new.set_starting_amount() #gets starting amount from player
+new.set_initial_balance(new.starting_amount) # transform starting amount into balance
+new.set_bet_size(new.starting_amount) # set bet size based on starting amount
+print(new.show_player_balance(new.balance, new.minimum_bet, new.maximum_bet,)) # tells player balance and bet size
+
 # Card Value check
 # print (get_card_value(new_card, deck_of_cards))
 
