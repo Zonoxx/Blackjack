@@ -72,8 +72,8 @@ class Bank():
                 print("Your input was not a number. Press Enter and try again please.")
         
         return self.starting_amount
-
-    def set_initial_balance(self, starting_amount):
+    # Sets the balance equal to the starting amaount
+    def set_initial_balance(self):
         self.balance = self.starting_amount
         return self.balance
 
@@ -81,33 +81,69 @@ class Bank():
     def balance_tracker():
         return
     # Calculates the bet sizes based on the starting amount
-    def set_bet_size(self, starting_amount):
+    def set_bet_size(self):
         self.minimum_bet = self.starting_amount // 100
         self.maximum_bet = self.starting_amount // 10
         return self.minimum_bet, self.maximum_bet
 
     #Display player balance and bet size
-    def show_player_balance(self, balance, minimum_bet, maximum_bet):
+    def show_player_balance(self):
         return "Your current balance is " + str(self.balance) + "$. The minimum bet is " + str(self.minimum_bet) + "$, the maximum is " + str(self.maximum_bet) + "$."
 
 class Deck():
-    ### This class handles game mechanics ###
+    ### This class handles Card mechanics ###
     def __init__(self, deck_of_cards):
         self.deck_of_cards = deck_of_cards
-    # Selects a card at random and returns the card name
-    def pull_a_card(deck_of_cards):
-        index = random.randint(0, len(deck_of_cards)-1)
+        self.player_card_one = ""
+        self.player_card_two = ""
+        self.player_total = 0
+        self.dealer_total = 0
+
+    # Selects a card at random and returns the card key
+    def pull_a_card(self):
+        index = random.randint(0, len(self.deck_of_cards)-1)
         keys_list = list(deck_of_cards)
         card_key = keys_list[index]
         return card_key
 
-    # Determines the corresponding value of a card
-    def get_card_value (card_key, deck_of_cards):
-        card_value = deck_of_cards[card_key]
-        return card_value 
+    # Determines value of initial 2 player cards
+    def player_card_values (self):
+        self.player_total = (self.deck_of_cards[self.player_card_one] + deck_of_cards[self.player_card_two])
+        return self.player_total 
+
+    # Determines value of initial 2 player cards
+    def dealer_card_values(self):
+        self.dealer_total = (deck_of_cards[self.dealer_card_one] + deck_of_cards[self.dealer_card_two])
+        return self.dealer_total
+
+    # Pull two player cards and two dealer cards, making sure that 4 different cards are pulled
+    def draw_new_cards(self):
+        self.player_card_one = self.pull_a_card()
+        self.player_card_two = self.pull_a_card()
+        self.dealer_card_one = self.pull_a_card()
+        self.dealer_card_two = self.pull_a_card()
+        while self.player_card_one == self.player_card_two:
+            self.player_card_two = self.pull_a_card()
+        while self.dealer_card_one == self.dealer_card_two or self.dealer_card_one == self.player_card_one:
+            self.dealer_card_one = self.pull_a_card()
+        return self.player_card_one, self.player_card_two, self.dealer_card_one, self.dealer_card_two
+
+    # Check if either player or dealer have natural blackjack after inital draw
+    def check_for_blackjack(self):
+        if self.player_total == 21 and self.dealer_total != 21:
+            #player gets betsize added to balance
+            return "You have a natural Blackjack and win your bet"
+        elif self.player_total == 21 and self.player_total == self.dealer_total:
+            #player balance is unchanged
+            return "You both have a natural blackjack. You receive your bet back"
+        elif self.player_total != 21 and self.dealer_total == 21:
+            #player looses amount he bet
+            return "The dealer has a natural blackjack and wins. You loose your bet"
+        else:
+            return False
 
 
-# class Main():
+#class Main():
     ### Contains the gameplay loop ###
 
     #print(intro)
@@ -123,13 +159,21 @@ class Deck():
             # When he stands evaluate Dealer
         # If player_points = 21 and number of cards > 2:
             # evaluate Dealer       
-###
-new = Bank()
-new.set_starting_amount() #gets starting amount from player
-new.set_initial_balance(new.starting_amount) # transform starting amount into balance
-new.set_bet_size(new.starting_amount) # set bet size based on starting amount
-print(new.show_player_balance(new.balance, new.minimum_bet, new.maximum_bet,)) # tells player balance and bet size
+### TESTING
 
+#new = Bank()
+#new.set_starting_amount() #gets starting amount from player
+#new.set_initial_balance() # transform starting amount into balance
+#new.set_bet_size() # set bet size based on starting amount
+#print(new.show_player_balance()) # tells player balance and bet size
+
+new_deck = Deck(deck_of_cards)
+print(new_deck.draw_new_cards()) #draws the player cards and dealer cards
+print(new_deck.dealer_card_values())
+print(new_deck.player_card_values()) # calculates the player card vaule
+print(new_deck.check_for_blackjack())
+
+#print(new_deck.player_card_values(new_deck.player_card_one, new_deck.player_card_two))
 # Card Value check
 # print (get_card_value(new_card, deck_of_cards))
 
