@@ -1,7 +1,7 @@
 Project Scope
 
 The game simulates a single player game of blackjack. Its player vs. dealer. 
-- For realism the game will simulate a stack of 6 full decks of 52 cards each and replenish the stack when its half empty ->  simple alternative is to create cards randomly.
+- (will not be included in first version)For realism the game will simulate a stack of 6 full decks of 52 cards each and replenish the stack when its half empty ->  simple alternative is to create cards randomly.
 - The player has a bank of money that he determines at the start and the game keeps track of
 - The player can bet money and will receive double his bet when he wins and loose his bet if he looses
 - Win condition: player can choose to stop playing at any point, bank will be judged on % of original amount and player will be assessed accordingly

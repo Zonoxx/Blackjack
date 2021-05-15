@@ -63,6 +63,7 @@ class Bank():
         self.bet_size = 0
         self.input = ""
         self.deck = Deck(deck_of_cards)
+        self.round_counter = 0
    
    #Gets player input for the starting amount and makes sure the input is valid
     def set_starting_amount(self):
@@ -107,12 +108,15 @@ class Bank():
     
     #Handles changes to the player balance
     def change_balance(self, deck):
-        if deck.player_total > deck.dealer_total:
+        if deck.player_total > deck.dealer_total and deck.player_total <= 21:
             self.balance += self.bet_size
             return print("You won! You have doubled your bet and your new balance is " + str(self.balance) + "$.")
-        elif deck.player_total == deck.dealer_total:
+        elif deck.dealer_total > 21 and deck.player_total <= 21:
+            self.balance += self.bet_size
+            return print("You won! You have doubled your bet and your new balance is " + str(self.balance) + "$.")
+        elif deck.player_total == deck.dealer_total and deck.player_total <=21:
             return print("Nobody wins. Your balanace is still " + str(self.balance) + "$.")
-        elif deck.player_total < deck.dealer_total:
+        elif deck.player_total < deck.dealer_total or deck.player_total > 21:
             self.balance -= self.bet_size
             return print("You loose. You have lost your bet and your new balance is " + str(self.balance) + "$.") 
         else:
@@ -171,6 +175,35 @@ class Bank():
             exit()
         return 
 
+    #Handles 
+    def hit_stand_double(self, deck):
+        while True:
+            self.round_counter += 1
+            self.decision = input("Would you like to (h)it, (s)tand or (d)ouble down? ")           
+            if self.decision == "h":
+                deck.new_card = deck.pull_a_card()
+                deck.player_card_value()
+                deck.tell_player_new_card()
+                if deck.player_total >= 21:
+                    break
+            elif self.decision == "s":
+                deck.evaluate_dealer()
+                break
+            elif self.decision == "d":
+                if self.round_counter == 1:
+                    self.bet_size *= 2
+                    print("You double the amount you bet this round to " + str(self.bet_size) + "$ and receive exactly one more card!")
+                    deck.new_card = deck.pull_a_card()
+                    deck.player_card_value()
+                    deck.tell_player_new_card()
+                    deck.evaluate_dealer()
+                    break
+                else:
+                    print("You can only double down at the beginning of the round")    
+            else:
+                print("Wrong input, please try again.")
+        self.round_counter = 0
+        return deck.player_total, deck.dealer_total, self.round_counter
 
 
 class Deck():
@@ -181,6 +214,8 @@ class Deck():
         self.player_card_two = ""
         self.player_total = 0
         self.dealer_total = 0
+        self.decision = ""
+        self.new_card = ""
         
     #Selects a card at random and returns the card key
     def pull_a_card(self):
@@ -194,9 +229,19 @@ class Deck():
         self.player_total = (self.deck_of_cards[self.player_card_one] + deck_of_cards[self.player_card_two])
         return self.player_total 
 
+    #Adds additional card value to player total 
+    def player_card_value(self):
+        self.player_total += self.deck_of_cards[self.new_card]
+        return self.player_total
+
     #Determines value of initial 2 dealer cards
     def dealer_card_values(self):
         self.dealer_total = (deck_of_cards[self.dealer_card_one] + deck_of_cards[self.dealer_card_two])
+        return self.dealer_total
+
+    #Adds additional card value to dealer total
+    def dealer_card_value(self):
+        self.dealer_total += self.deck_of_cards[self.new_card]
         return self.dealer_total
 
     #Pull two player cards and two dealer cards, making sure that 4 different cards are pulled
@@ -211,11 +256,30 @@ class Deck():
             self.dealer_card_one = self.pull_a_card()
         return self.player_card_one, self.player_card_two, self.dealer_card_one, self.dealer_card_two
 
-    #Tells the player his and the dealers cards and their value
+    #Tells the player his and the dealers initial cards and their value
     def tell_player_cards(self):
         print("You have the following cards: " + self.player_card_one + " and " + self.player_card_two + ". The dealer is showing: " + self.dealer_card_one + " and " + self.dealer_card_two + ".")
         print("Your combined total is " + str(self.player_total) + " points, the dealer has " + str(self.dealer_total) + " points.")
         return
+
+    #Tells player the name of a new card he draws and the combined value of his points
+    def tell_player_new_card(self):
+        print("You get dealt the following card: " + self.new_card + "! ")
+        print("Your combined total is " + str(self.player_total) + " points.")
+        return self.player_total
+
+    #Evaluates the dealer once the player stands
+    def evaluate_dealer(self):
+        if self.dealer_total >= 17:
+            print ("The dealer has " + str(self.dealer_total) + " points and stands.")
+        while self.dealer_total < 17:
+            self.new_card = self.pull_a_card()
+            self.dealer_card_value()
+            print("The dealer draws and gets the following card: " + self.new_card + "! ")
+            print("His combined total is " + str(self.dealer_total) + " points.")
+        return self.dealer_total
+
+    
 
 
 
@@ -248,14 +312,14 @@ while new.balance >= new.minimum_bet:
     new_deck.dealer_card_values() # calculates the dealer card value
     new_deck.tell_player_cards() # Tells player his cards, dealer cards and their values
     if new.check_for_blackjack(new_deck) == False:
+        new.hit_stand_double(new_deck)
         new.change_balance(new_deck)
     else:
         continue
 new.end_of_game()
-#print(new_deck.check_for_blackjack())
 
-#print(new_deck.player_card_values(new_deck.player_card_one, new_deck.player_card_two))
-# Card Value check
-# print (get_card_value(new_card, deck_of_cards))
+# TO DO
+# Ace mechanics 1/11
+# Display only first card of dealer and tell player the dealer total after he stands
 
 
