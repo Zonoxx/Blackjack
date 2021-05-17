@@ -27,6 +27,7 @@ deck_of_cards = {
     "Ace of clubs": 11
     }
 
+ace_check = {"Ace of diamonds": 1, "Ace of hearts": 1, "Ace of spades": 1, "Ace of clubs": 1 }
 
 intro = """ 
 \t\t\t Welcome to Blackjack! \n\n
@@ -62,7 +63,7 @@ class Bank():
         self.balance = 0
         self.bet_size = 0
         self.input = ""
-        self.deck = Deck(deck_of_cards)
+        self.deck = Deck(deck_of_cards, ace_check)
         self.round_counter = 0
    
    #Gets player input for the starting amount and makes sure the input is valid
@@ -141,15 +142,15 @@ class Bank():
         self.input = input("Please choose one of the following options and enter the corresponding letter: (p)lay a round, (c)heck your balance and bet size, see the (r)ules again, or (e)nd the game: ")
         while True:
             try:
-                if self.input == "p":
+                if self.input.lower() == "p":
                     self.get_bet_size()
-                elif self.input == "c":
+                elif self.input.lower() == "c":
                     self.show_player_balance()
                     self.next_round()
-                elif self.input == "r":
+                elif self.input.lower() == "r":
                     print(intro)
                     self.next_round()
-                elif self.input == "e":
+                elif self.input.lower() == "e":
                     self.end_of_game()
                 else:
                     print("You did not choose any of the specified inputs. Please try again.")
@@ -175,26 +176,35 @@ class Bank():
             exit()
         return 
 
-    #Handles 
+    #Handles Hit/Stand/Double mechanics
     def hit_stand_double(self, deck):
         while True:
             self.round_counter += 1
             self.decision = input("Would you like to (h)it, (s)tand or (d)ouble down? ")           
-            if self.decision == "h":
+            if self.decision.lower() == "h":
                 deck.new_card = deck.pull_a_card()
+                deck.player_card_list.append(deck.new_card)
                 deck.player_card_value()
                 deck.tell_player_new_card()
-                if deck.player_total >= 21:
+                if deck.player_total == 21:
+                    deck.evaluate_dealer()
                     break
-            elif self.decision == "s":
+                elif deck.player_total > 21:
+                    deck.check_for_ace_player()
+                    if deck.player_total < 21:
+                        print("You have an ace, which will now be treated as a 1, meaning you have " + str(deck.player_total) + " points.")
+                    elif deck.player_total > 21:
+                        break
+            elif self.decision.lower() == "s":
                 deck.evaluate_dealer()
                 break
-            elif self.decision == "d":
+            elif self.decision.lower() == "d":
                 if self.round_counter == 1:
                     self.bet_size *= 2
                     print("You double the amount you bet this round to " + str(self.bet_size) + "$ and receive exactly one more card!")
                     deck.new_card = deck.pull_a_card()
                     deck.player_card_value()
+                    deck.check_for_ace()
                     deck.tell_player_new_card()
                     deck.evaluate_dealer()
                     break
@@ -208,16 +218,20 @@ class Bank():
 
 class Deck():
     ### This class handles Card mechanics ###
-    def __init__(self, deck_of_cards):
+    def __init__(self, deck_of_cards, ace_check):
         self.deck_of_cards = deck_of_cards
+        self.ace_check = ace_check
         self.player_card_one = ""
         self.player_card_two = ""
         self.player_total = 0
         self.dealer_total = 0
         self.decision = ""
         self.new_card = ""
+        self.ace_count = 0
+        self.player_card_list = []
+        self.dealer_card_list = []
         
-    #Selects a card at random and returns the card key
+    #Selects a card at random and returns the card key, also increases ace count
     def pull_a_card(self):
         index = random.randint(0, len(self.deck_of_cards)-1)
         keys_list = list(deck_of_cards)
@@ -254,12 +268,16 @@ class Deck():
             self.player_card_two = self.pull_a_card()
         while self.dealer_card_one == self.dealer_card_two or self.dealer_card_one == self.player_card_one:
             self.dealer_card_one = self.pull_a_card()
-        return self.player_card_one, self.player_card_two, self.dealer_card_one, self.dealer_card_two
+        self.player_card_list.append(self.player_card_one)
+        self.player_card_list.append(self.player_card_two)
+        self.dealer_card_list.append(self.dealer_card_one)
+        self.dealer_card_list.append(self.dealer_card_two)
+        return self.player_card_one, self.player_card_two, self.dealer_card_one, self.dealer_card_two, self.dealer_card_list, self.player_card_list
 
     #Tells the player his and the dealers initial cards and their value
     def tell_player_cards(self):
-        print("You have the following cards: " + self.player_card_one + " and " + self.player_card_two + ". The dealer is showing: " + self.dealer_card_one + " and " + self.dealer_card_two + ".")
-        print("Your combined total is " + str(self.player_total) + " points, the dealer has " + str(self.dealer_total) + " points.")
+        print("You have the following cards: " + self.player_card_one + " and " + self.player_card_two + ". The dealer is showing: " + self.dealer_card_one + ". ")
+        print("Your combined total is " + str(self.player_total) + " points, the dealer has " + str(deck_of_cards[self.dealer_card_one]) + " points.")
         return
 
     #Tells player the name of a new card he draws and the combined value of his points
@@ -270,18 +288,44 @@ class Deck():
 
     #Evaluates the dealer once the player stands
     def evaluate_dealer(self):
-        if self.dealer_total >= 17:
-            print ("The dealer has " + str(self.dealer_total) + " points and stands.")
+        print("The dealers second card is " + str(self.dealer_card_two) + " meaning he has " + str(self.dealer_total) + " points. ")
         while self.dealer_total < 17:
             self.new_card = self.pull_a_card()
+            self.dealer_card_list.append(self.new_card)
             self.dealer_card_value()
             print("The dealer draws and gets the following card: " + self.new_card + "! ")
             print("His combined total is " + str(self.dealer_total) + " points.")
+        if self.dealer_total <= 21:
+            print("The dealer has " + str(self.dealer_total) + " points and stands.")
+        elif self.dealer_total > 21:
+            self.check_for_ace_dealer()
+            if self.dealer_total < 17:
+                print("The dealer has an ace which will now be treated as a 1. He now has " + str(self.dealer_total) + " points.")
+                self.new_card = self.pull_a_card()
+                self.dealer_card_list.append(self.new_card)
+                self.dealer_card_value()
+                print("The dealer draws and gets the following card: " + self.new_card + "! ")
+                print("His combined total is " + str(self.dealer_total) + " points.")
+            elif self.dealer_total >= 17 and self.dealer_total <= 21:
+                print("The dealer has " + str(self.dealer_total) + " points and stands.")
+            else:
+                print("The dealer has " + str(self.dealer_total) + " points and busts.")
         return self.dealer_total
 
-    
+    #Checks if any of the player cards are an ace 
+    def check_for_ace_player(self): 
+        for i in self.player_card_list:
+            if "Ace" in i:
+                self.player_card_list.remove(i)
+                self.player_total -= 10
+        return self.player_card_list, self.player_total
 
-
+    def check_for_ace_dealer(self): 
+        for i in self.dealer_card_list:
+            if "Ace" in i:
+                self.dealer_card_list.remove(i)
+                self.dealer_total -= 10
+        return self.dealer_card_list, self.dealer_total
 
 
 
@@ -300,7 +344,7 @@ class Deck():
 ### Gameplay loop
 print(intro)
 new = Bank()
-new_deck = Deck(deck_of_cards)
+new_deck = Deck(deck_of_cards, ace_check)
 new.set_starting_amount() #gets starting amount from player
 new.set_initial_balance() # transform starting amount into balance
 new.set_bet_size() # set bet size based on starting amount
@@ -320,6 +364,5 @@ new.end_of_game()
 
 # TO DO
 # Ace mechanics 1/11
-# Display only first card of dealer and tell player the dealer total after he stands
-
+# Put game loop in class
 
