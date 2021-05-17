@@ -1,8 +1,8 @@
-# global variables and imports
+#imports
 import random
 from sys import exit
-# main classes
 
+#global variables
 
 deck_of_cards = {
     "2 of diamonds": 2, "3 of diamonds": 3, "4 of diamonds": 4,
@@ -27,8 +27,6 @@ deck_of_cards = {
     "Ace of clubs": 11
     }
 
-ace_check = {"Ace of diamonds": 1, "Ace of hearts": 1, "Ace of spades": 1, "Ace of clubs": 1 }
-
 intro = """ 
 \t\t\t Welcome to Blackjack! \n\n
 You will play against the dealer with the amount you specify in the beginning.
@@ -52,7 +50,7 @@ by any other combination of cards, even if they amount to 21 as well.\n
 The game ends when you have not enough money to bet again
 or you decide to end the round. Either way, the game will let you know how you did in the end.
 """
-
+#Classes
 
 class Bank():
     
@@ -63,7 +61,7 @@ class Bank():
         self.balance = 0
         self.bet_size = 0
         self.input = ""
-        self.deck = Deck(deck_of_cards, ace_check)
+        self.deck = Deck(deck_of_cards)
         self.round_counter = 0
    
    #Gets player input for the starting amount and makes sure the input is valid
@@ -218,9 +216,8 @@ class Bank():
 
 class Deck():
     ### This class handles Card mechanics ###
-    def __init__(self, deck_of_cards, ace_check):
+    def __init__(self, deck_of_cards):
         self.deck_of_cards = deck_of_cards
-        self.ace_check = ace_check
         self.player_card_one = ""
         self.player_card_two = ""
         self.player_total = 0
@@ -320,49 +317,44 @@ class Deck():
                 self.player_total -= 10
         return self.player_card_list, self.player_total
 
+    #Checks if any of the dealer cards are an ace
     def check_for_ace_dealer(self): 
         for i in self.dealer_card_list:
             if "Ace" in i:
                 self.dealer_card_list.remove(i)
                 self.dealer_total -= 10
         return self.dealer_card_list, self.dealer_total
-
-
-
     
-    # Things to do:
-    # Implement check that bet is >= balance when getting bet
-    #Implement further blackjack logic
-    #Ask if he wants to Hit(h), Stand(s) or Double Down (D)
-        # While player_points < 21:
-            #Ask player if he wants to Hit(h) or Stand(s)
-            # When he stands evaluate Dealer
-        # If player_points = 21 and number of cards > 2:
-            # evaluate Dealer       
 
+class Main():
+   
+    def __init__(self):
+        self.deck = Deck(deck_of_cards)
+        self.bank = Bank()
+
+    print(intro)
+    new_bank = Bank()
+    new_deck = Deck(deck_of_cards)
+    new_bank.set_starting_amount() #gets starting amount from player
+    new_bank.set_initial_balance() # transform starting amount into balance
+    new_bank.set_bet_size() # set bet size based on starting amount
+    new_bank.show_player_balance() # tells player balance and bet size  
+    while new_bank.balance >= new_bank.minimum_bet:
+        new_bank.next_round()
+        new_deck.draw_new_cards() #draws the player cards and dealer cards
+        new_deck.player_card_values() # calculates the player card value
+        new_deck.dealer_card_values() # calculates the dealer card value
+        new_deck.tell_player_cards() # Tells player his cards, dealer cards and their values
+        if new_bank.check_for_blackjack(new_deck) == False:
+            new_bank.hit_stand_double(new_deck)
+            new_bank.change_balance(new_deck)
+        else:
+            continue
+    new_bank.end_of_game()  
 
 ### Gameplay loop
-print(intro)
-new = Bank()
-new_deck = Deck(deck_of_cards, ace_check)
-new.set_starting_amount() #gets starting amount from player
-new.set_initial_balance() # transform starting amount into balance
-new.set_bet_size() # set bet size based on starting amount
-new.show_player_balance() # tells player balance and bet size
-while new.balance >= new.minimum_bet:
-    new.next_round()
-    new_deck.draw_new_cards() #draws the player cards and dealer cards
-    new_deck.player_card_values() # calculates the player card value
-    new_deck.dealer_card_values() # calculates the dealer card value
-    new_deck.tell_player_cards() # Tells player his cards, dealer cards and their values
-    if new.check_for_blackjack(new_deck) == False:
-        new.hit_stand_double(new_deck)
-        new.change_balance(new_deck)
-    else:
-        continue
-new.end_of_game()
 
-# TO DO
-# Ace mechanics 1/11
-# Put game loop in class
+Main()
+
+
 
