@@ -52,6 +52,7 @@ or you decide to end the round. Either way, the game will let you know how you d
 """
 #Classes
 
+#Handles all changes to the player balance 
 class Bank():
     
     def __init__(self):
@@ -63,6 +64,7 @@ class Bank():
         self.input = ""
         self.deck = Deck(deck_of_cards)
         self.round_counter = 0
+        
    
    #Gets player input for the starting amount and makes sure the input is valid
     def set_starting_amount(self):
@@ -213,7 +215,7 @@ class Bank():
         self.round_counter = 0
         return deck.player_total, deck.dealer_total, self.round_counter
 
-
+#Handles all Card mechanics
 class Deck():
     ### This class handles Card mechanics ###
     def __init__(self, deck_of_cards):
@@ -227,6 +229,7 @@ class Deck():
         self.ace_count = 0
         self.player_card_list = []
         self.dealer_card_list = []
+        self.ace_check = ["Ace of diamonds", "Ace of hearts", "Ace of spades", "Ace of clubs"]
         
     #Selects a card at random and returns the card key, also increases ace count
     def pull_a_card(self):
@@ -311,21 +314,29 @@ class Deck():
 
     #Checks if any of the player cards are an ace 
     def check_for_ace_player(self): 
-        for i in self.player_card_list:
-            if "Ace" in i:
-                self.player_card_list.remove(i)
-                self.player_total -= 10
-        return self.player_card_list == [], self.player_total
+        for card in self.player_card_list:
+            for ace in self.ace_check:
+                if card == ace:
+                    self.player_total -= 10
+                    self.player_card_list.remove(card)
+        return self.player_card_list, self.player_total
 
     #Checks if any of the dealer cards are an ace
     def check_for_ace_dealer(self): 
-        for i in self.dealer_card_list:
-            if "Ace" in i:
-                self.dealer_card_list.remove(i)
-                self.dealer_total -= 10
-        return  self.dealer_total, self.dealer_card_list == []
+        for card in self.dealer_card_list:
+            for ace in self.ace_check:
+                if ace == card:
+                    self.dealer_total -= 10
+                    self.dealer_card_list.remove(card)
+        return  self.dealer_total, self.dealer_card_list
     
+    # Resets Player and Dealer hands
+    def reset_hands(self):
+        self.dealer_card_list = []
+        self.player_card_list = []
+        return self.dealer_card_list, self.player_card_list
 
+#Contains the game loop
 class Main():
    
     def __init__(self):
@@ -340,6 +351,7 @@ class Main():
     new_bank.set_bet_size() # set bet size based on starting amount
     new_bank.show_player_balance() # tells player balance and bet size  
     while new_bank.balance >= new_bank.minimum_bet:
+        new_deck.reset_hands()
         new_bank.next_round()
         new_deck.draw_new_cards() #draws the player cards and dealer cards
         new_deck.player_card_values() # calculates the player card value
