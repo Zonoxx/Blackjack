@@ -202,7 +202,7 @@ class Bank():
                     print("You double the amount you bet this round to " + str(self.bet_size) + "$ and receive exactly one more card!")
                     deck.new_card = deck.pull_a_card()
                     deck.player_card_value()
-                    deck.check_for_ace()
+                    deck.check_for_ace_player()
                     deck.tell_player_new_card()
                     deck.evaluate_dealer()
                     break
@@ -315,7 +315,7 @@ class Deck():
             if "Ace" in i:
                 self.player_card_list.remove(i)
                 self.player_total -= 10
-        return self.player_card_list, self.player_total
+        return self.player_card_list == [], self.player_total
 
     #Checks if any of the dealer cards are an ace
     def check_for_ace_dealer(self): 
@@ -323,7 +323,7 @@ class Deck():
             if "Ace" in i:
                 self.dealer_card_list.remove(i)
                 self.dealer_total -= 10
-        return self.dealer_card_list, self.dealer_total
+        return  self.dealer_total, self.dealer_card_list == []
     
 
 class Main():
